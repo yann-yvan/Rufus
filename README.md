@@ -4,12 +4,6 @@ Android sqlite library with syntax similar to Laravel framework.
 [![](https://jitpack.io/v/yann-yvan/Rufus.svg)](https://jitpack.io/#yann-yvan/Rufus)
 
 ## Features
-  - [Easily add new slides][Intro Activity]
-  - [Custom slides][Custom Slide]
-  - [Parallax slides][Parallax Slide]
-  - Easy extensible api
-  - Android TV support!
-  - Material design at it's best!!!
 
 ## Usage
 
@@ -17,10 +11,10 @@ Android sqlite library with syntax similar to Laravel framework.
 #### Add it in your root build.gradle at the end of repositories
 ```
 allprojects {
-	repositories {
-		...
-		maven { url 'https://jitpack.io' }
-	}
+  repositories {
+	...
+	maven { url 'https://jitpack.io' }
+  }
 }
 ```
 
