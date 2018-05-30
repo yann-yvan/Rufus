@@ -1,7 +1,8 @@
 # Rufus
-Android sqlite library with syntax similar to Laravel framework.
-<br>
+
 [![](https://jitpack.io/v/yann-yvan/Rufus.svg)](https://jitpack.io/#yann-yvan/Rufus)
+
+## Android SQLite support library with syntax similar to Laravel framework
 
 ## Features
 
