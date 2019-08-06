@@ -55,8 +55,7 @@ public class RufusApp extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        mContext = this;
-        mHandler = new Migrations(getApplicationContext(),
+        mHandler = new Migrations(mContext,
                 ManifestReader.getMetadataString("DATABASE"),
                 null, ManifestReader.getMetadataInt("VERSION"));
 
