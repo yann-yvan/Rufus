@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="corp.ny.com.rufus">
 
-    <application android:name=".system.RufusApp" >
+    <application>
         <provider
             android:name=".system.RufusInitProvider"
             android:authorities="${applicationId}.rufusinitprovider"
