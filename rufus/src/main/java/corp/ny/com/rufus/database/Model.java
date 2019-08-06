@@ -24,8 +24,6 @@ public abstract class Model<T> implements Cloneable, Serializable {
 
     //getTable() identify
     private String idName = "id";
-    //limit
-    private int limit = 5;
     //handled model
     private T model = (T) this;
     //in case of need of cursor value
@@ -119,7 +117,8 @@ public abstract class Model<T> implements Cloneable, Serializable {
      * DefResponse value is <b>5</b>
      */
     public int getLimit() {
-        return limit;
+        //limit
+        return 5;
     }
 
     /**
@@ -137,12 +136,7 @@ public abstract class Model<T> implements Cloneable, Serializable {
         return null;
     }
 
-    /**
-     * Get last select query cursor
-     *
-     * @return a cursor
-     */
-   /* public Cursor getCloneCursor() {
+    /* public Cursor getCloneCursor() {
         return cloneCursor;
     }*/
 

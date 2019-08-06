@@ -19,6 +19,7 @@ public class RufusApp extends Application {
     private static Context mContext;
     private static Migrations mHandler = null;
     private static SQLiteDatabase mDb = null;
+    private static RufusApp mInstance;
     private static TableBuilder tableBuilder;
 
     public static Context getContext() {
@@ -31,6 +32,16 @@ public class RufusApp extends Application {
 
     public static void setTableBuilder(TableBuilder tableBuilder) {
         RufusApp.tableBuilder = tableBuilder;
+    }
+
+    public static void init(Context context) {
+        mContext = context;
+        mInstance = new RufusApp();
+        mInstance.onCreate();
+    }
+
+    public static synchronized RufusApp getInstance() {
+        return mInstance;
     }
 
     public static SQLiteDatabase getDataBaseInstance() {
