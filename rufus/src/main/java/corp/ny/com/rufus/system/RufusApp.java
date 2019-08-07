@@ -58,7 +58,8 @@ public class RufusApp extends Application {
         mHandler = new Migrations(mContext,
                 ManifestReader.getMetadataString("DATABASE"),
                 null, ManifestReader.getMetadataInt("VERSION"));
-
+        if (tableBuilder!=null)
+            tableBuilder.build(mHandler.getWritableDatabase());
     }
 
 
