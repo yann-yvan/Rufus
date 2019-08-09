@@ -3,9 +3,9 @@ package corp.ny.com.rufus.database;
 import android.content.ContentValues;
 import android.database.CharArrayBuffer;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -26,6 +26,9 @@ public abstract class Model<T> implements Cloneable, Serializable {
     private String idName = "id";
     //handled model
     private T model = (T) this;
+    private int lastPage = 0;
+    private int lastSearchPage = 0;
+    private String searchable;
     //in case of need of cursor value
     //private Cursor cloneCursor;
 
@@ -35,9 +38,8 @@ public abstract class Model<T> implements Cloneable, Serializable {
      *
      * @param object    the class model
      * @param fieldName the field name of the desired value
-     * @return String value or null if not found
      */
-    public static void fillAttribute(Object object, String fieldName, Cursor cursor) throws ClassNotFoundException {
+    private static void fillAttribute(Object object, String fieldName, Cursor cursor) throws ClassNotFoundException {
         Class c = Class.forName(object.getClass().getName());
         for (Field field : c.getDeclaredFields()) {
             //skip if it is not the target field
@@ -110,6 +112,14 @@ public abstract class Model<T> implements Cloneable, Serializable {
         return idName;
     }
 
+    public String getSearchable() {
+        return searchable;
+    }
+
+    public void setSearchable(String searchable) {
+        this.searchable = searchable;
+    }
+
     /**
      * Define table limit result per query by range
      *
@@ -121,24 +131,9 @@ public abstract class Model<T> implements Cloneable, Serializable {
         return 5;
     }
 
-    /**
-     * Insert values into a table
-     *
-     * @param obj the model to save in database
-     * @return the model inserted into the table on <b>null</b> if something went wrong
-     */
-    public T create(T obj) {
-        long success = getDb().insert(getTableName(), null, sqlQueryBuilder(new ContentValues()));
-        if (success > 0) {
-            Log.e("new Id ", String.valueOf(success));
-            return find(success);
-        }
-        return null;
+    public int getLastPage() {
+        return lastPage;
     }
-
-    /* public Cursor getCloneCursor() {
-        return cloneCursor;
-    }*/
 
     /**
      * Insert values into a table
@@ -146,21 +141,35 @@ public abstract class Model<T> implements Cloneable, Serializable {
      * @return the model inserted into the table on <b>null</b> if something went wrong
      */
     public T save() {
-        long success = getDb().insert(getTableName(), null, sqlQueryBuilder(new ContentValues()));
-        if (success > 0) {
-            Log.e("new Id ", String.valueOf(success));
-            return find(success);
+        try {
+            long success = getDb().insertWithOnConflict(getTableName(), null, sqlQueryBuilder(new ContentValues()), SQLiteDatabase.CONFLICT_FAIL);
+            if (success > 0) {
+                // Log.e("Save ", String.valueOf(success));
+                return find(success);
+            }
+        } catch (SQLiteConstraintException e) {
+            //e.printStackTrace();
+            return update();
         }
         return null;
     }
 
+
+    /**
+     * Get last select query cursor
+     *
+     * @return a cursor
+     */
+   /* public Cursor getCloneCursor() {
+        return cloneCursor;
+    }*/
+
     /**
      * Method for delete
      *
-     * @param obj the object to delete
      * @return boolean true if success
      */
-    public boolean delete(T obj) {
+    public boolean delete() {
         int success = getDb().delete(getTableName(), getIdName() + "=?", new String[]{getIdValue()});
         return success > 0;
     }
@@ -181,17 +190,21 @@ public abstract class Model<T> implements Cloneable, Serializable {
         return total;
     }
 
+
     /**
      * Update a model in the table
      *
-     * @param obj the model to update in database
      * @return the model up to date from the table on <b>null</b> if something went wrong
      */
-    public T update(T obj) {
-        int success = getDb().update(getTableName(), sqlQueryBuilder(new ContentValues()), getIdName() + "=?", new String[]{getIdValue()});
-        if (success > 0) {
-            Log.e("new Id ", String.valueOf(success));
-            return find(success);
+    public T update() {
+        try {
+            int success = getDb().update(getTableName(), sqlQueryBuilder(new ContentValues()), getIdName() + "=?", new String[]{getIdValue()});
+            if (success > 0) {
+                //Log.e("new Id ", String.valueOf(success));
+                return find(success);
+            }
+        } catch (SQLiteConstraintException e) {
+            e.printStackTrace();
         }
         return null;
     }
@@ -253,6 +266,10 @@ public abstract class Model<T> implements Cloneable, Serializable {
         return null;
     }
 
+    public T refresh() {
+        return find(getIdValue());
+    }
+
     /**
      * Method to find all model from a table
      *
@@ -263,6 +280,23 @@ public abstract class Model<T> implements Cloneable, Serializable {
         Cursor cursor = getDb().rawQuery(String.format("SELECT * FROM %s ORDER BY %s", getTableName(), getOrderBy()), null);
         if (cursor != null) {
             //cloneCursor = cursor;
+            while (cursor.moveToNext()) {
+                result.add(cursorToModel(cursor));
+            }
+            cursor.close();
+        }
+        return result;
+    }
+
+    public ArrayList<T> search(String query) {
+        ArrayList<T> result = new ArrayList<>();
+        Cursor cursor = getDb().query(getTableName(), null, getSearchable() + " LIKE ?",
+                new String[]{"%" + query + "%"}, null, null, getOrderBy());
+        //Cursor cursor = getDb().rawQuery(String.format("SELECT * FROM %s WHERE ? LIKE ? ORDER BY ? LIMIT ?,?", getTableName()),
+        //new String[]{getSearchable(), "%" + query + "%", getOrderBy(), String.valueOf(lastSearchPage), String.valueOf(getLimit())});
+        if (cursor != null) {
+            //cloneCursor = cursor;
+            //Log.e("size", cursor.getCount() + "");
             while (cursor.moveToNext()) {
                 result.add(cursorToModel(cursor));
             }
@@ -290,6 +324,29 @@ public abstract class Model<T> implements Cloneable, Serializable {
             }
             cursor.close();
         }
+        return result;
+    }
+
+    /**
+     * Method for find information by lastID and get result list
+     *
+     * @return a list of model found starting from the value nested the last id or an<b>empty list</b> if nothing found in table
+     * <br>the list is paginate <b>default value is 5 per result</b>
+     */
+    public ArrayList<T> paginate() {
+        ArrayList<T> result = new ArrayList<>();
+
+        Cursor cursor = getDb().rawQuery(String.format("SELECT * FROM %s ORDER BY %s LIMIT %s,%s", getTableName(), getOrderBy(), lastPage, getLimit()), null);
+        if (cursor != null) {
+            //cloneCursor = cursor;
+            while (cursor.moveToNext()) {
+                result.add(cursorToModel(cursor));
+            }
+            cursor.close();
+        }
+
+        lastPage += result.size();
+
         return result;
     }
 
