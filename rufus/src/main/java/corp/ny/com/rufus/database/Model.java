@@ -12,6 +12,7 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.List;
 
 import corp.ny.com.rufus.system.RufusApp;
 
@@ -532,19 +533,18 @@ public abstract class Model<T> implements Cloneable, Serializable {
      * @return Json string
      */
     public String toJson() {
-        String[] json = new String[]{};
+        List<String> json = new ArrayList<>();
         try {
             Class c = Class.forName(this.getClass().getName());
-            int index = json.length;
             for (Field field : c.getDeclaredFields()) {
                 field.setAccessible(true);
                 try {
-                    json[index++] = String.format("\n\t\"%s\" : \"%s\"", field.getName(), field.get(this));
+                    json.add(String.format("\n\t\"%s\" : \"%s\"", field.getName(), field.get(this)));
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
                 }
             }
-            return String.format("{%s}", TextUtils.join(",", json));
+            return String.format("{%s}", TextUtils.join(",", json.toArray()));
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
