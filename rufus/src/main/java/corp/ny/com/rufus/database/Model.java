@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -274,6 +275,7 @@ public abstract class Model<T> implements Cloneable, Serializable {
      * Method to find all model from a table
      *
      * @return a list of model found or an<b>empty list</b> if nothing found in table
+     * @deprecated
      */
     public ArrayList<T> findAll() {
         ArrayList<T> result = new ArrayList<>();
@@ -286,6 +288,15 @@ public abstract class Model<T> implements Cloneable, Serializable {
             cursor.close();
         }
         return result;
+    }
+
+    /**
+     * Method to find all model from a table
+     *
+     * @return a list of model found or an<b>empty list</b> if nothing found in table
+     */
+    public ArrayList<T> all() {
+        return findAll();
     }
 
     public ArrayList<T> search(String query) {
@@ -513,6 +524,31 @@ public abstract class Model<T> implements Cloneable, Serializable {
             e.printStackTrace();
         }
         return null;
+    }
+
+    /**
+     * Get Json representation of the object
+     *
+     * @return Json string
+     */
+    public String toJson() {
+        String[] json = new String[]{};
+        try {
+            Class c = Class.forName(this.getClass().getName());
+            int index = json.length;
+            for (Field field : c.getDeclaredFields()) {
+                field.setAccessible(true);
+                try {
+                    json[index++] = String.format("\n\t\"%s\" : \"%s\"", field.getName(), field.get(this));
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
+            return String.format("{%s}", TextUtils.join(",", json));
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return "{}";
     }
 
     /**
