@@ -5,15 +5,24 @@ import android.support.annotation.NonNull;
 import corp.ny.com.rufus.database.Constraint;
 import corp.ny.com.rufus.database.Model;
 import corp.ny.com.rufus.database.Schema;
+import corp.ny.com.rufus.database.annotation.Column;
+import corp.ny.com.rufus.database.annotation.Table;
 
 
 /**
  * Created by Yann Yvan CEO of N.Y. Corp. on 19/04/18.
  */
+@Table
 public class Message extends Model<Message> {
+    @Column(primary = true, increment = true)
     private int id;
+    @Column
     private String message;
+    @Column
+    @corp.ny.com.rufus.database.annotation.Constraint(references = "id", onTable = "user")
     private int receiverId;
+    @Column(defaultInt = 10)
+    @corp.ny.com.rufus.database.annotation.Constraint(references = "id", onTable = "user")
     private int senderId;
 
     public static Message getInstance() {

@@ -2,8 +2,12 @@ package corp.ny.com.rufus.database;
 
 import android.text.TextUtils;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+
+import corp.ny.com.rufus.database.annotation.Table;
+import corp.ny.com.rufus.database.exceptions.TableException;
 
 /**
  * Created by Yann Yvan CEO of N.Y. Corp. on 04/05/18.
@@ -19,6 +23,113 @@ public class Schema {
 
     public static Schema instantiate(String tableName) {
         return new Schema(tableName);
+    }
+
+    public static Schema instantiate(String tableName, Model model) throws TableException {
+        Schema schema = new Schema(tableName);
+        if (model == null) {
+            throw new TableException("The object is null");
+        }
+
+        Class<?> clazz = model.getClass();
+
+        if (!clazz.isAnnotationPresent(Table.class)) {
+            throw new TableException("The class "
+                    + clazz.getSimpleName()
+                    + " is not annotated with Table");
+        }
+
+        for (Field field : clazz.getDeclaredFields()) {
+            field.setAccessible(true);
+            if (field.isAnnotationPresent(corp.ny.com.rufus.database.annotation.Constraint.class))
+                schema.constraints.add(
+                        Constraint.instantiate(field.getName())
+                                .on(field.getAnnotation(corp.ny.com.rufus.database.annotation.Constraint.class).onTable())
+                                .onUpdate(field.getAnnotation(corp.ny.com.rufus.database.annotation.Constraint.class).onUpdate())
+                                .onDelete(field.getAnnotation(corp.ny.com.rufus.database.annotation.Constraint.class).onDelete())
+                );
+
+            if (field.isAnnotationPresent(corp.ny.com.rufus.database.annotation.Column.class)) {
+                if (field.getType() == String.class && field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).check().length > 0)
+                    schema.columns.add(new Column(
+                            String.format("`%s` VARCHAR", field.getName()),
+                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).nullable(),
+                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).unique(),
+                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).primary(),
+                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).increment(),
+                            false,
+                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).varCharSize(),
+                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).defaultString(),
+                            String.format("['%s']",TextUtils.join("','",field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).check()))
+                    ));
+                else if (field.getType() == String.class)
+                    schema.columns.add(new Column(
+                            String.format("`%s` TEXT", field.getName()),
+                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).nullable(),
+                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).unique(),
+                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).primary(),
+                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).increment(),
+                            false,
+                            0,
+                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).defaultString(),
+                            null
+
+                    ));
+                else if (field.getType() == boolean.class)
+                    schema.columns.add(new Column(
+                            String.format("`%s` INTEGER", field.getName()),
+                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).nullable(),
+                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).unique(),
+                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).primary(),
+                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).increment(),
+                            false,
+                            1,
+                            String.valueOf(field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).defaultInt()),
+                            null
+
+                    ));
+                else if (field.getType() == double.class)
+                    schema.columns.add(new Column(
+                            String.format("`%s` DOUBLE", field.getName()),
+                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).nullable(),
+                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).unique(),
+                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).primary(),
+                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).increment(),
+                            false,
+                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).intSize(),
+                            String.valueOf(field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).defaultInt()),
+                            null
+
+                    ));
+                else if (field.getType() == float.class)
+                    schema.columns.add(new Column(
+                            String.format("`%s` FLOAT", field.getName()),
+                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).nullable(),
+                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).unique(),
+                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).primary(),
+                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).increment(),
+                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).signed(),
+                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).intSize(),
+                            String.valueOf(field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).defaultInt()),
+                            null
+
+                    ));
+                else if (field.getType() == int.class || field.getType() == long.class || field.getType() == byte.class || field.getType() == short.class)
+                    schema.columns.add(new Column(
+                            String.format("`%s` INTEGER", field.getName()),
+                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).nullable(),
+                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).unique(),
+                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).primary(),
+                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).increment(),
+                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).signed(),
+                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).intSize(),
+                            String.valueOf(field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).defaultInt()),
+                            null
+
+                    ));
+            }
+        }
+        return schema;
     }
 
     /**

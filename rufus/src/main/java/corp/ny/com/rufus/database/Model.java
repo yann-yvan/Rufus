@@ -14,6 +14,8 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
+import corp.ny.com.rufus.database.annotation.Column;
+import corp.ny.com.rufus.database.exceptions.TableException;
 import corp.ny.com.rufus.system.RufusApp;
 
 
@@ -33,6 +35,10 @@ public abstract class Model<T> implements Cloneable, Serializable {
     private String searchable;
     //in case of need of cursor value
     //private Cursor cloneCursor;
+
+    public static String id() {
+        return "";
+    }
 
 
     /**
@@ -102,7 +108,21 @@ public abstract class Model<T> implements Cloneable, Serializable {
      *
      * @return id value
      */
-    public abstract String getIdValue();
+    public String getIdValue(){
+        for (Field field : getClass().getDeclaredFields()) {
+            field.setAccessible(true);
+            if (field.isAnnotationPresent(corp.ny.com.rufus.database.annotation.Column.class)) {
+                if (field.getAnnotation(Column.class).primary()) {
+                    try {
+                        return (String) field.get(this);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+        return null;
+    }
 
     /**
      * Define table identifier column
@@ -156,15 +176,6 @@ public abstract class Model<T> implements Cloneable, Serializable {
         return null;
     }
 
-
-    /**
-     * Get last select query cursor
-     *
-     * @return a cursor
-     */
-   /* public Cursor getCloneCursor() {
-        return cloneCursor;
-    }*/
 
     /**
      * Method for delete
@@ -476,6 +487,17 @@ public abstract class Model<T> implements Cloneable, Serializable {
         return schema.toString();
     }
 
+
+    /**
+     * @return SQlIte query to build table from annotation
+     */
+    public String genTable() throws TableException {
+        Schema schema = Schema.instantiate(getTableName(), this);
+        tableStructure(schema);
+        return schema.toString();
+    }
+
+
     /**
      * <blockquote>
      * <b>Sample</b>
@@ -491,7 +513,7 @@ public abstract class Model<T> implements Cloneable, Serializable {
      *
      * @param table
      */
-    public abstract void tableStructure(@NonNull Schema table);
+    public void tableStructure(@NonNull Schema table) {}
 
     @Override
     public String toString() {
@@ -591,4 +613,5 @@ public abstract class Model<T> implements Cloneable, Serializable {
         }
         return values;
     }
+
 }

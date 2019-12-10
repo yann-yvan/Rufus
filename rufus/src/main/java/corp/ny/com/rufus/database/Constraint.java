@@ -68,8 +68,28 @@ public class Constraint {
         return this;
     }
 
+    public Constraint onDelete(String action) {
+        for (int i = 0; i < Action.values().length; i++) {
+            if (Action.values()[i].value.equalsIgnoreCase(action)) {
+                onDelete = Action.values()[i];
+                break;
+            }
+        }
+        return this;
+    }
+
     public Constraint onUpdate(Action action) {
         onUpdate = action;
+        return this;
+    }
+
+    public Constraint onUpdate(String action) {
+        for (int i = 0; i < Action.values().length; i++) {
+            if (Action.values()[i].value.equalsIgnoreCase(action)) {
+                onUpdate = Action.values()[i];
+                break;
+            }
+        }
         return this;
     }
 

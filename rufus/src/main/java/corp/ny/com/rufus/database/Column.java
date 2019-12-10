@@ -2,6 +2,8 @@ package corp.ny.com.rufus.database;
 
 import android.text.TextUtils;
 
+import java.lang.reflect.Field;
+
 /**
  * Created by Yann Yvan CEO of N.Y. Corp. on 04/05/18.
  */
@@ -27,6 +29,19 @@ public class Column {
     private Column(String name, int size) {
         this.name = name;
         this.size = size;
+    }
+
+    protected Column(String name, boolean isNullable, boolean isUnique, boolean isPrimary, boolean isIncrement, boolean isSigned, int size, String defValue, String check) {
+        this.name = name;
+        this.isNullable = isNullable;
+        this.isUnique = isUnique;
+        this.isPrimary = isPrimary;
+        this.isIncrement = isIncrement;
+        this.isSigned = isSigned;
+        this.size = size;
+        this.defValue = defValue;
+        this.check = check;
+        System.out.println(toString());
     }
 
     public static Column instantiate(String begin, int size) {
