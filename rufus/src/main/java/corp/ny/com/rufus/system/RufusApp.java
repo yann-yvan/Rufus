@@ -63,8 +63,11 @@ public class RufusApp extends Application {
             tableBuilder.build(mHandler.getWritableDatabase());
     }
 
-    public void addOnUpgradeSchema(int version, Schema schema){
-        mHandler.add(schema,version);
+    public static void addOnUpgradeSchema(int version, Schema... schemas){
+        for (Schema schema: schemas
+             ) {
+            mHandler.add(schema,version);
+        }
     }
 
 

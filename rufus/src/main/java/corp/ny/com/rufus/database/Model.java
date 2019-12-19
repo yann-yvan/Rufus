@@ -493,9 +493,13 @@ public abstract class Model<T> implements Cloneable, Serializable {
      * @return SQlIte query to build table from annotation
      */
     public String genTable() throws TableException {
+        return getSchema().toString();
+    }
+
+    public Schema getSchema() throws TableException {
         Schema schema = Schema.instantiate(getTableName(), this);
         tableStructure(schema);
-        return schema.toString();
+        return  schema;
     }
 
 
