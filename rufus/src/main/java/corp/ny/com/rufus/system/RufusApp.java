@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 
 import corp.ny.com.rufus.database.Migrations;
+import corp.ny.com.rufus.database.Schema;
 import corp.ny.com.rufus.utils.ManifestReader;
 
 
@@ -62,6 +63,10 @@ public class RufusApp extends Application {
             tableBuilder.build(mHandler.getWritableDatabase());
     }
 
+    public void addOnUpgradeSchema(int version, Schema schema){
+        mHandler.add(schema,version);
+    }
+
 
     @Override
     public void onTerminate() {
@@ -71,5 +76,7 @@ public class RufusApp extends Application {
 
     public interface TableBuilder {
         void build(SQLiteDatabase db);
+        void onUpgrade();
+        void downUpgrade();
     }
 }

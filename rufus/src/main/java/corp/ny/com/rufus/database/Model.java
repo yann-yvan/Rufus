@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import corp.ny.com.rufus.database.annotation.Column;
+import corp.ny.com.rufus.database.annotation.Table;
 import corp.ny.com.rufus.database.exceptions.TableException;
 import corp.ny.com.rufus.system.RufusApp;
 
@@ -587,22 +588,14 @@ public abstract class Model<T> implements Cloneable, Serializable {
                 if (!field.isAccessible()) field.setAccessible(true);
                 try {
                     if (field.getName().equals("serialVersionUID")) continue;
-                    if (field.getType() == String.class)
-                        values.put(field.getName(), (String) field.get(object));
-                    else if (field.getType() == int.class)
-                        values.put(field.getName(), (Integer) field.get(object));
-                    else if (field.getType() == boolean.class)
-                        values.put(field.getName(), (Boolean) field.get(object));
-                    else if (field.getType() == double.class)
-                        values.put(field.getName(), (Double) field.get(object));
-                    else if (field.getType() == float.class)
-                        values.put(field.getName(), (Float) field.get(object));
-                    else if (field.getType() == short.class)
-                        values.put(field.getName(), (Short) field.get(object));
-                    else if (field.getType() == long.class)
-                        values.put(field.getName(), (Long) field.get(object));
-                    else if (field.getType() == byte.class)
-                        values.put(field.getName(), (Byte) field.get(object));
+                    //For annotated classes
+                    if(c.isAnnotationPresent(Table.class) && field.isAnnotationPresent(corp.ny.com.rufus.database.annotation.Column.class)){
+                        populate(object,field,values);
+                    }else{
+                        //For non annotate classes
+                        populate(object,field,values);
+                    }
+
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
                 }
@@ -614,4 +607,29 @@ public abstract class Model<T> implements Cloneable, Serializable {
         return values;
     }
 
+    /**
+     * Put field value into sql query parameter
+     * @param object
+     * @param field
+     * @param values
+     * @throws IllegalAccessException
+     */
+    private void populate(final T object,Field field,ContentValues values) throws IllegalAccessException {
+        if (field.getType() == String.class)
+            values.put(field.getName(), (String) field.get(object));
+        else if (field.getType() == int.class)
+            values.put(field.getName(), (Integer) field.get(object));
+        else if (field.getType() == boolean.class)
+            values.put(field.getName(), (Boolean) field.get(object));
+        else if (field.getType() == double.class)
+            values.put(field.getName(), (Double) field.get(object));
+        else if (field.getType() == float.class)
+            values.put(field.getName(), (Float) field.get(object));
+        else if (field.getType() == short.class)
+            values.put(field.getName(), (Short) field.get(object));
+        else if (field.getType() == long.class)
+            values.put(field.getName(), (Long) field.get(object));
+        else if (field.getType() == byte.class)
+            values.put(field.getName(), (Byte) field.get(object));
+    }
 }
