@@ -1,9 +1,8 @@
 package corp.ny.com.tuttifrutti;
 
-import android.os.Bundle;
 import android.app.Activity;
+import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 
 public class HomeActivityActivity extends Activity implements View.OnClickListener {
 
@@ -25,6 +24,14 @@ public class HomeActivityActivity extends Activity implements View.OnClickListen
                 for (int i = 0; i < 10; i++) {
                     Message.getInstance(i).save();
                 }
+
+                Message message = new Message()
+                        .where("receiverId", User.getInstance().getId())
+                        .where("id", 5)
+                        .first();
+                if (message != null)
+                    System.out.println(message.toJson());
+
                 break;
         }
     }

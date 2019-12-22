@@ -37,10 +37,9 @@ public abstract class Model<T> implements Cloneable, Serializable {
     private String searchable;
     //in case of need of cursor value
     //private Cursor cloneCursor;
-
-    public static String id() {
-        return "";
-    }
+    private List<Clause> clauses = new ArrayList<Clause>();
+    String groupBy;
+    String orderBy;
 
 
     /**
@@ -654,5 +653,91 @@ public abstract class Model<T> implements Cloneable, Serializable {
             values.put(field.getName(), (Long) field.get(object));
         else if (field.getType() == byte.class)
             values.put(field.getName(), (Byte) field.get(object));
+    }
+
+    public Model<T> where(String column, String value) {
+        clauses.add(new Clause(column, value));
+        return this;
+    }
+
+    public Model<T> where(String column, int value) {
+        clauses.add(new Clause(column, String.valueOf(value)));
+        return this;
+    }
+
+    public Model<T> where(String column, boolean value) {
+        clauses.add(new Clause(column, String.valueOf(value ? 1 : 0)));
+        return this;
+    }
+
+    public Model<T> where(String column, Clause.Comparison comparison, String value) {
+        clauses.add(new Clause(column, comparison.value, value));
+        return this;
+    }
+
+    public Model<T> where(String column, Clause.Comparison comparison, boolean value) {
+        clauses.add(new Clause(column, comparison.value, String.valueOf(value ? 1 : 0)));
+        return this;
+    }
+
+    public Model<T> where(String column, Clause.Comparison comparison, int value) {
+        clauses.add(new Clause(column, comparison.value, String.valueOf(value)));
+        return this;
+    }
+
+    public Model<T> where(String column, String comparison, String value) {
+        clauses.add(new Clause(column, comparison, value));
+        return this;
+    }
+
+    public void setGroupBy(String groupBy) {
+        this.groupBy = groupBy;
+    }
+
+    public void setOrderBy(String orderBy) {
+        this.orderBy = orderBy;
+    }
+
+    public ArrayList<T> get() {
+        ArrayList<T> result = new ArrayList<>();
+        String sql = TextUtils.join(" AND ", clauses.toArray());
+        Cursor cursor = getDb().query(getTableName(), null, sql,
+                null, this.groupBy, null, this.orderBy);
+        if (cursor != null) {
+            //cloneCursor = cursor;
+            if (cursor.moveToNext()) {
+                result.add(cursorToModel(cursor));
+            }
+            cursor.close();
+        }
+        return result;
+    }
+
+    public T first() {
+        ArrayList<T> result = get();
+        if (result.isEmpty())
+            return null;
+        else
+            return result.get(0);
+    }
+
+    /**
+     * Get
+     * @return
+     */
+    public T last() {
+        ArrayList<T> result = get();
+        if (result.isEmpty())
+            return null;
+        else
+            return result.get(result.size() - 1);
+    }
+
+    public void groupBy(String groupBy) {
+        this.groupBy = groupBy;
+    }
+
+    public void orderBy(String orderBy) {
+        this.orderBy = orderBy;
     }
 }
