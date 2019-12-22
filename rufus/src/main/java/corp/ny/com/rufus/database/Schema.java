@@ -59,7 +59,7 @@ public class Schema {
                             field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).increment(),
                             false,
                             field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).varCharSize(),
-                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).defaultString(),
+                            getDefaultValue(field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).defaultString()),
                             String.format("['%s']",TextUtils.join("','",field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).check()))
                     ));
                 else if (field.getType() == String.class)
@@ -71,7 +71,7 @@ public class Schema {
                             field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).increment(),
                             false,
                             0,
-                            field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).defaultString(),
+                            getDefaultValue(field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).defaultString()),
                             null
 
                     ));
@@ -84,7 +84,7 @@ public class Schema {
                             field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).increment(),
                             false,
                             1,
-                            String.valueOf(field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).defaultInt()),
+                           getDefaultValue( String.valueOf(field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).defaultInt())),
                             null
 
                     ));
@@ -97,7 +97,7 @@ public class Schema {
                             field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).increment(),
                             false,
                             field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).intSize(),
-                            String.valueOf(field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).defaultInt()),
+                            getDefaultValue(String.valueOf(field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).defaultInt())),
                             null
 
                     ));
@@ -110,7 +110,7 @@ public class Schema {
                             field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).increment(),
                             field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).signed(),
                             field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).intSize(),
-                            String.valueOf(field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).defaultInt()),
+                            getDefaultValue(String.valueOf(field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).defaultInt())),
                             null
 
                     ));
@@ -123,13 +123,17 @@ public class Schema {
                             field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).increment(),
                             field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).signed(),
                             field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).intSize(),
-                            String.valueOf(field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).defaultInt()),
+                            getDefaultValue(String.valueOf(field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).defaultInt())),
                             null
 
                     ));
             }
         }
         return schema;
+    }
+
+    private static String getDefaultValue(String value){
+        return value.length()==0?null:value;
     }
 
     /**

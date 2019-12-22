@@ -4,6 +4,10 @@ import android.app.Application;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+
 import corp.ny.com.rufus.database.Migrations;
 import corp.ny.com.rufus.database.Schema;
 import corp.ny.com.rufus.utils.ManifestReader;
@@ -64,10 +68,7 @@ public class RufusApp extends Application {
     }
 
     public static void addOnUpgradeSchema(int version, Schema... schemas){
-        for (Schema schema: schemas
-             ) {
-            mHandler.add(schema,version);
-        }
+        mHandler.add(new ArrayList<>(Arrays.asList(schemas)),version);
     }
 
 

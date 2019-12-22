@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
+import android.util.Log;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -115,7 +116,7 @@ public abstract class Model<T> implements Cloneable, Serializable {
             if (field.isAnnotationPresent(corp.ny.com.rufus.database.annotation.Column.class)) {
                 if (field.getAnnotation(Column.class).primary()) {
                     try {
-                        return (String) field.get(this);
+                        return String.valueOf(field.get(this));
                     } catch (IllegalAccessException e) {
                         e.printStackTrace();
                     }
@@ -167,11 +168,11 @@ public abstract class Model<T> implements Cloneable, Serializable {
         try {
             long success = getDb().insertWithOnConflict(getTableName(), null, sqlQueryBuilder(new ContentValues()), SQLiteDatabase.CONFLICT_FAIL);
             if (success > 0) {
-                // Log.e("Save ", String.valueOf(success));
+                 System.out.println(String.format("New %s : %s",getTableName(),String.valueOf(success)));
                 return find(success);
             }
         } catch (SQLiteConstraintException e) {
-            //e.printStackTrace();
+            e.printStackTrace();
             return update();
         }
         return null;
@@ -214,7 +215,8 @@ public abstract class Model<T> implements Cloneable, Serializable {
         try {
             int success = getDb().update(getTableName(), sqlQueryBuilder(new ContentValues()), getIdName() + "=?", new String[]{getIdValue()});
             if (success > 0) {
-                //Log.e("new Id ", String.valueOf(success));
+                Log.e("new Id ", String.valueOf(success));
+                System.out.println(String.format("Update %s : %s",getTableName(),String.valueOf(success)));
                 return find(success);
             }
         } catch (SQLiteConstraintException e) {

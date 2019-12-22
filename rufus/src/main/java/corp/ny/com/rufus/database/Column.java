@@ -41,7 +41,6 @@ public class Column {
         this.size = size;
         this.defValue = defValue;
         this.check = check;
-        System.out.println(toString());
     }
 
     public static Column instantiate(String begin, int size) {
