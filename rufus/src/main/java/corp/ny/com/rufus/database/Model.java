@@ -49,7 +49,7 @@ public abstract class Model<T> implements Cloneable, Serializable {
      * @param object    the class model
      * @param fieldName the field name of the desired value
      */
-    private static void fillAttribute(Object object, String fieldName, Cursor cursor) throws ClassNotFoundException {
+    public static void fillAttribute(Object object, String fieldName, Cursor cursor) throws ClassNotFoundException {
         Class c = Class.forName(object.getClass().getName());
         for (Field field : c.getDeclaredFields()) {
             //skip if it is not the target field
@@ -196,6 +196,7 @@ public abstract class Model<T> implements Cloneable, Serializable {
         }
         return null;
     }
+
 
 
 
@@ -481,7 +482,7 @@ public abstract class Model<T> implements Cloneable, Serializable {
      * @param cursor object containing all query rows
      * @return the model with all attribute like save in the table
      */
-    private T cursorToModel(Cursor cursor) {
+    public T cursorToModel(Cursor cursor) {
         T object = null;
         try {
             object = (T) clone();
@@ -636,7 +637,7 @@ public abstract class Model<T> implements Cloneable, Serializable {
      * @param values
      * @throws IllegalAccessException
      */
-    private void populate(final T object,Field field,ContentValues values) throws IllegalAccessException {
+    public void populate(final T object,Field field,ContentValues values) throws IllegalAccessException {
         if (field.getType() == String.class)
             values.put(field.getName(), (String) field.get(object));
         else if (field.getType() == int.class)
