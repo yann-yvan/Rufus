@@ -6,6 +6,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
+import corp.ny.com.rufus.BuildConfig;
 import corp.ny.com.rufus.database.annotation.Table;
 import corp.ny.com.rufus.database.exceptions.TableException;
 
@@ -45,6 +46,7 @@ public class Schema {
                 schema.constraints.add(
                         Constraint.instantiate(field.getName())
                                 .on(field.getAnnotation(corp.ny.com.rufus.database.annotation.Constraint.class).onTable())
+                                .references(field.getAnnotation(corp.ny.com.rufus.database.annotation.Constraint.class).references())
                                 .onUpdate(field.getAnnotation(corp.ny.com.rufus.database.annotation.Constraint.class).onUpdate())
                                 .onDelete(field.getAnnotation(corp.ny.com.rufus.database.annotation.Constraint.class).onDelete())
                 );
@@ -244,10 +246,13 @@ public class Schema {
 
     @Override
     public String toString() {
-        return String.format("CREATE TABLE IF NOT EXISTS %s ( %s%s );"
+        String script =
+                String.format("CREATE TABLE IF NOT EXISTS %s ( %s%s );"
                 , tableName, TextUtils.join(",", columns.toArray())
                 , (constraints.isEmpty() ? ""
                         : String.format(",\n%s"
                         , TextUtils.join(",", constraints.toArray()))));
+            System.out.println(script);
+        return script;
     }
 }

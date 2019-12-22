@@ -172,11 +172,31 @@ public abstract class Model<T> implements Cloneable, Serializable {
                 return find(success);
             }
         } catch (SQLiteConstraintException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             return update();
         }
         return null;
     }
+
+    /**
+     * Insert values into a table
+     *
+     * @return the model inserted into the table on <b>null</b> if something went wrong
+     */
+    public T insert(T... model) {
+        try {
+            long success = getDb().insertWithOnConflict(getTableName(), null, sqlQueryBuilder(new ContentValues()), SQLiteDatabase.CONFLICT_FAIL);
+            if (success > 0) {
+                 System.out.println(String.format("New %s : %s",getTableName(),String.valueOf(success)));
+                return find(success);
+            }
+        } catch (SQLiteConstraintException e) {
+            //e.printStackTrace();
+            return update();
+        }
+        return null;
+    }
+
 
 
     /**
@@ -597,11 +617,7 @@ public abstract class Model<T> implements Cloneable, Serializable {
                     //For annotated classes
                     if(c.isAnnotationPresent(Table.class) && field.isAnnotationPresent(corp.ny.com.rufus.database.annotation.Column.class)){
                         populate(object,field,values);
-                    }else{
-                        //For non annotate classes
-                        populate(object,field,values);
                     }
-
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
                 }
