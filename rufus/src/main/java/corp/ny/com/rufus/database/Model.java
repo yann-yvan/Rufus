@@ -64,9 +64,12 @@ public abstract class Model<T> implements Cloneable, Serializable {
                     field.set(object, cursor.getString(index));
                 else if (cursor.getType(index) == Cursor.FIELD_TYPE_FLOAT)
                     field.setFloat(object, cursor.getFloat(index));
-                else if (cursor.getType(index) == Cursor.FIELD_TYPE_INTEGER)
-                    field.setInt(object, cursor.getInt(index));
-                else {
+                else if (cursor.getType(index) == Cursor.FIELD_TYPE_INTEGER) {
+                    if (field.getType() == boolean.class)
+                        field.setBoolean(object, cursor.getInt(index)==1);
+                    else
+                        field.setInt(object, cursor.getInt(index));
+                } else {
                     CharArrayBuffer buffer = new CharArrayBuffer(1024 * 4);
                     cursor.copyStringToBuffer(index, buffer);
                     //field.set(object, buffer.toString());
