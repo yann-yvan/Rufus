@@ -14,6 +14,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import corp.ny.com.rufus.database.annotation.Column;
 import corp.ny.com.rufus.database.annotation.Table;
@@ -161,6 +162,10 @@ public abstract class Model<T> implements Cloneable, Serializable {
         return lastPage;
     }
 
+    public void setLastPage(int lastPage) {
+        this.lastPage = lastPage;
+    }
+
     /**
      * Insert values into a table
      *
@@ -185,18 +190,34 @@ public abstract class Model<T> implements Cloneable, Serializable {
      *
      * @return the model inserted into the table on <b>null</b> if something went wrong
      */
-    public T insert(T... model) {
+    public void insert(T... models) {
         try {
-            long success = getDb().insertWithOnConflict(getTableName(), null, sqlQueryBuilder(new ContentValues()), SQLiteDatabase.CONFLICT_FAIL);
-            if (success > 0) {
-                 System.out.println(String.format("New %s : %s",getTableName(),String.valueOf(success)));
-                return find(success);
+            getDb().beginTransaction();
+            for (T model : models) {
+                getDb().insert(getTableName(), null, prepareStatement(model, new ContentValues()));
             }
-        } catch (SQLiteConstraintException e) {
-            //e.printStackTrace();
-            return update();
+            getDb().setTransactionSuccessful();
+        } finally {
+            getDb().endTransaction();
         }
-        return null;
+    }
+
+
+    /**
+     * Insert values into a table
+     *
+     * @return the model inserted into the table on <b>null</b> if something went wrong
+     */
+    public void insert(ArrayList<T> models) {
+        try {
+            getDb().beginTransaction();
+            for (T model : models) {
+                getDb().insert(getTableName(), null, prepareStatement(model, new ContentValues()));
+            }
+            getDb().setTransactionSuccessful();
+        } finally {
+            getDb().endTransaction();
+        }
     }
 
 
