@@ -295,16 +295,7 @@ public abstract class Model<T> implements Cloneable, Serializable {
      * @return the model found or <b>null</b> if nothing found in table
      */
     public T find(int id) {
-        Cursor cursor = getDb().query(getTableName(), null, getIdName() + " LIKE ?",
-                new String[]{String.valueOf(id)}, null, null, null);
-        if (cursor != null) {
-            //cloneCursor = cursor;
-            if (cursor.moveToNext()) {
-                return cursorToModel(cursor);
-            }
-            cursor.close();
-        }
-        return null;
+        return find(String.valueOf(id));
     }
 
     /**
@@ -314,16 +305,7 @@ public abstract class Model<T> implements Cloneable, Serializable {
      * @return the model found or <b>null</b> if nothing found in table
      */
     public T find(long id) {
-        Cursor cursor = getDb().query(getTableName(), null, getIdName() + " LIKE ?",
-                new String[]{String.valueOf(id)}, null, null, null);
-        if (cursor != null) {
-            //cloneCursor = cursor;
-            if (cursor.moveToNext()) {
-                return cursorToModel(cursor);
-            }
-            cursor.close();
-        }
-        return null;
+        return find(String.valueOf(id));
     }
 
     public T refresh() {
