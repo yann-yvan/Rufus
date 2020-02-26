@@ -6,7 +6,6 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
-import corp.ny.com.rufus.BuildConfig;
 import corp.ny.com.rufus.database.annotation.Table;
 import corp.ny.com.rufus.database.exceptions.TableException;
 
@@ -125,7 +124,7 @@ public class Schema {
                             field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).increment(),
                             field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).signed(),
                             field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).intSize(),
-                            getDefaultValue(String.valueOf(field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).defaultInt())),
+                            getDefaultValue(field.getAnnotation(corp.ny.com.rufus.database.annotation.Column.class).defaultInt()),
                             null
 
                     ));
@@ -136,6 +135,10 @@ public class Schema {
 
     private static String getDefaultValue(String value){
         return value.length()==0?null:value;
+    }
+
+    private static String getDefaultValue(int value) {
+        return value == 0 ? null : String.valueOf(value);
     }
 
     /**

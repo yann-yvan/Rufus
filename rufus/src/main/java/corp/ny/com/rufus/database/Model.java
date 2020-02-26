@@ -179,7 +179,7 @@ public abstract class Model<T> implements Cloneable, Serializable {
                 return find(success);
             }
         } catch (SQLiteConstraintException e) {
-            //e.printStackTrace();
+            System.out.printf("Save failed with reason ==> %s ==> Attempt to update",e.getMessage());
             return update();
         }
         return null;
@@ -194,7 +194,7 @@ public abstract class Model<T> implements Cloneable, Serializable {
         try {
             getDb().beginTransaction();
             for (T model : models) {
-                getDb().insert(getTableName(), null, prepareStatement(model, new ContentValues()));
+                getDb().insertWithOnConflict(getTableName(), null, prepareStatement( new ContentValues()),SQLiteDatabase.CONFLICT_REPLACE);
             }
             getDb().setTransactionSuccessful();
         } finally {
@@ -212,7 +212,7 @@ public abstract class Model<T> implements Cloneable, Serializable {
         try {
             getDb().beginTransaction();
             for (T model : models) {
-                getDb().insert(getTableName(), null, prepareStatement(model, new ContentValues()));
+                getDb().insertWithOnConflict(getTableName(), null, prepareStatement( new ContentValues()),SQLiteDatabase.CONFLICT_REPLACE);
             }
             getDb().setTransactionSuccessful();
         } finally {
@@ -264,7 +264,7 @@ public abstract class Model<T> implements Cloneable, Serializable {
                 return find(success);
             }
         } catch (SQLiteConstraintException e) {
-            e.printStackTrace();
+            System.out.printf("Update Failed ==> %s",e.getMessage());
         }
         return null;
     }
@@ -473,7 +473,7 @@ public abstract class Model<T> implements Cloneable, Serializable {
      * @return and object that will be use for update and insert query
      */
     public ContentValues sqlQueryBuilder(ContentValues query) {
-        return prepareStatement(model, query);
+        return prepareStatement( query);
     }
 
     /**
@@ -607,13 +607,12 @@ public abstract class Model<T> implements Cloneable, Serializable {
     }
 
     /**
-     * @param object the model to extract data
      * @param values the object where extracted data from model will be put
      * @return an object with model data extracted
      */
-    public ContentValues prepareStatement(final T object, ContentValues values) {
+    public ContentValues prepareStatement(ContentValues values) {
         try {
-            Class c = Class.forName(object.getClass().getName());
+            Class c = Class.forName(this.getClass().getName());
 
 
             for (Field field : c.getDeclaredFields()) {
@@ -622,7 +621,7 @@ public abstract class Model<T> implements Cloneable, Serializable {
                     if (field.getName().equals("serialVersionUID")) continue;
                     //For annotated classes
                     if(c.isAnnotationPresent(Table.class) && field.isAnnotationPresent(corp.ny.com.rufus.database.annotation.Column.class)){
-                        populate(object,field,values);
+                        populate(this.model,field,values);
                     }
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
