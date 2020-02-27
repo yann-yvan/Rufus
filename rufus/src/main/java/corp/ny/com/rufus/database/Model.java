@@ -1,5 +1,8 @@
 package corp.ny.com.rufus.database;
 
+import com.google.common.base.*;
+
+import android.arch.core.BuildConfig;
 import android.content.ContentValues;
 import android.database.CharArrayBuffer;
 import android.database.Cursor;
@@ -14,7 +17,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import corp.ny.com.rufus.database.annotation.Column;
 import corp.ny.com.rufus.database.annotation.Table;
@@ -31,16 +33,14 @@ public abstract class Model<T> implements Cloneable, Serializable {
 
     //getTable() identify
     private String idName = "id";
-    //handled model
-    private T model = (T) this;
     private int lastPage = 0;
     private int lastSearchPage = 0;
     private String searchable;
     //in case of need of cursor value
     //private Cursor cloneCursor;
     private List<Clause> clauses = new ArrayList<Clause>();
-    String groupBy;
-    String orderBy;
+    private String groupBy;
+    private String orderBy;
 
 
     /**
@@ -96,7 +96,7 @@ public abstract class Model<T> implements Cloneable, Serializable {
      * @return table name
      */
     public String getTableName() {
-        return model.getClass().getSimpleName();
+        return this.getClass().getSimpleName();
     }
 
     /**
@@ -154,7 +154,6 @@ public abstract class Model<T> implements Cloneable, Serializable {
      * DefResponse value is <b>5</b>
      */
     public int getLimit() {
-        //limit
         return 5;
     }
 
@@ -175,11 +174,11 @@ public abstract class Model<T> implements Cloneable, Serializable {
         try {
             long success = getDb().insertWithOnConflict(getTableName(), null, sqlQueryBuilder(new ContentValues()), SQLiteDatabase.CONFLICT_FAIL);
             if (success > 0) {
-                 System.out.println(String.format("New %s : %s",getTableName(),String.valueOf(success)));
+                 System.out.printf("New %s : %s\n",getTableName(),String.valueOf(success));
                 return find(success);
             }
         } catch (SQLiteConstraintException e) {
-            System.out.printf("Save failed with reason ==> %s ==> Attempt to update",e.getMessage());
+            System.out.printf("Save failed with reason ==> %s ==> Attempt to UPDATE\n",e.getMessage());
             return update();
         }
         return null;
@@ -220,9 +219,6 @@ public abstract class Model<T> implements Cloneable, Serializable {
         }
     }
 
-
-
-
     /**
      * Method for delete
      *
@@ -242,7 +238,6 @@ public abstract class Model<T> implements Cloneable, Serializable {
         int total = 0;
         Cursor cursor = getDb().rawQuery(String.format("SELECT * FROM %s", getTableName()), null);
         if (cursor != null) {
-            //cloneCursor = cursor;
             total = cursor.getCount();
             cursor.close();
         }
@@ -259,12 +254,11 @@ public abstract class Model<T> implements Cloneable, Serializable {
         try {
             int success = getDb().update(getTableName(), sqlQueryBuilder(new ContentValues()), getIdName() + "=?", new String[]{getIdValue()});
             if (success > 0) {
-                Log.e("new Id ", String.valueOf(success));
-                System.out.println(String.format("Update %s : %s",getTableName(),String.valueOf(success)));
+                System.out.printf("Update %s : %s\n",getTableName(),String.valueOf(getIdValue()));
                 return find(success);
             }
         } catch (SQLiteConstraintException e) {
-            System.out.printf("Update Failed ==> %s",e.getMessage());
+            System.out.printf("Update Failed ==> %s\n",e.getMessage());
         }
         return null;
     }
@@ -550,36 +544,12 @@ public abstract class Model<T> implements Cloneable, Serializable {
 
     @Override
     public String toString() {
-        return printClass(model);
+        return toJson();
     }
 
     @Override
     public Object clone() throws CloneNotSupportedException {
         return super.clone();
-    }
-
-    /**
-     * @param object
-     */
-    public String printClass(T object) {
-        try {
-            Class c = Class.forName(object.getClass().getName());
-            String result = "{";
-
-            for (Field field : c.getDeclaredFields()) {
-                field.setAccessible(true);
-                try {
-
-                    result = result.concat(String.format("\n\t\"%s\" : \"%s\",", field.getName(), field.get(object)));
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                }
-            }
-            return result.concat("}");
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
     /**
@@ -621,7 +591,7 @@ public abstract class Model<T> implements Cloneable, Serializable {
                     if (field.getName().equals("serialVersionUID")) continue;
                     //For annotated classes
                     if(c.isAnnotationPresent(Table.class) && field.isAnnotationPresent(corp.ny.com.rufus.database.annotation.Column.class)){
-                        populate(this.model,field,values);
+                        populate(field,values);
                     }
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
@@ -636,28 +606,28 @@ public abstract class Model<T> implements Cloneable, Serializable {
 
     /**
      * Put field value into sql query parameter
-     * @param object
      * @param field
      * @param values
      * @throws IllegalAccessException
      */
-    public void populate(final T object,Field field,ContentValues values) throws IllegalAccessException {
+    public void populate(Field field,ContentValues values) throws IllegalAccessException {
         if (field.getType() == String.class)
-            values.put(field.getName(), (String) field.get(object));
-        else if (field.getType() == int.class)
-            values.put(field.getName(), (Integer) field.get(object));
-        else if (field.getType() == boolean.class)
-            values.put(field.getName(), (Boolean) field.get(object));
-        else if (field.getType() == double.class)
-            values.put(field.getName(), (Double) field.get(object));
-        else if (field.getType() == float.class)
-            values.put(field.getName(), (Float) field.get(object));
-        else if (field.getType() == short.class)
-            values.put(field.getName(), (Short) field.get(object));
-        else if (field.getType() == long.class)
-            values.put(field.getName(), (Long) field.get(object));
+            values.put(field.getName(), (String) field.get(this));
+        else if (!field.getAnnotation(Column.class).increment() || !field.get(this).equals(Defaults.defaultValue(field.getType()))) {
+            if (field.getType() == int.class)
+                values.put(field.getName(), (Integer) field.get(this));
+            else if (field.getType() == double.class)
+                values.put(field.getName(), (Double) field.get(this));
+            else if (field.getType() == float.class)
+                values.put(field.getName(), (Float) field.get(this));
+            else if (field.getType() == short.class)
+                values.put(field.getName(), (Short) field.get(this));
+            else if (field.getType() == long.class)
+                values.put(field.getName(), (Long) field.get(this));
+        } else if (field.getType() == boolean.class)
+            values.put(field.getName(), (Boolean) field.get(this));
         else if (field.getType() == byte.class)
-            values.put(field.getName(), (Byte) field.get(object));
+            values.put(field.getName(), (Byte) field.get(this));
     }
 
     public Model<T> where(String column, String value) {

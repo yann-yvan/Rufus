@@ -27,7 +27,6 @@ public class Message extends Model<Message> {
 
     public static Message getInstance(int id) {
         Message message = new Message();
-        message.setId(id);
         message.setMessage(String.format("%s %s","message",id));
         message.setReceiverId(1);
         message.setSenderId(1);
