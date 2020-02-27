@@ -1,8 +1,5 @@
 package corp.ny.com.rufus.database;
 
-import com.google.common.base.*;
-
-import android.arch.core.BuildConfig;
 import android.content.ContentValues;
 import android.database.CharArrayBuffer;
 import android.database.Cursor;
@@ -10,7 +7,8 @@ import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
-import android.util.Log;
+
+import com.google.common.base.Defaults;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -613,6 +611,10 @@ public abstract class Model<T> implements Cloneable, Serializable {
     public void populate(Field field,ContentValues values) throws IllegalAccessException {
         if (field.getType() == String.class)
             values.put(field.getName(), (String) field.get(this));
+        else if (field.getType() == boolean.class)
+            values.put(field.getName(), (Boolean) field.get(this));
+        else if (field.getType() == byte.class)
+            values.put(field.getName(), (Byte) field.get(this));
         else if (!field.getAnnotation(Column.class).increment() || !field.get(this).equals(Defaults.defaultValue(field.getType()))) {
             if (field.getType() == int.class)
                 values.put(field.getName(), (Integer) field.get(this));
@@ -624,10 +626,7 @@ public abstract class Model<T> implements Cloneable, Serializable {
                 values.put(field.getName(), (Short) field.get(this));
             else if (field.getType() == long.class)
                 values.put(field.getName(), (Long) field.get(this));
-        } else if (field.getType() == boolean.class)
-            values.put(field.getName(), (Boolean) field.get(this));
-        else if (field.getType() == byte.class)
-            values.put(field.getName(), (Byte) field.get(this));
+        }
     }
 
     public Model<T> where(String column, String value) {

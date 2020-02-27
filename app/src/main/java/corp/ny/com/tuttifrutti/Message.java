@@ -19,6 +19,8 @@ public class Message extends Model<Message> {
     @Column
     private String message;
     @Column
+    private boolean isOpen;
+    @Column
     @corp.ny.com.rufus.database.annotation.Constraint(references = "id", onTable = "User")
     private int receiverId;
     @Column(defaultInt = 10)
@@ -27,9 +29,11 @@ public class Message extends Model<Message> {
 
     public static Message getInstance(int id) {
         Message message = new Message();
+        message.setId(id);
         message.setMessage(String.format("%s %s","message",id));
         message.setReceiverId(1);
         message.setSenderId(1);
+        message.setOpen(!message.isOpen);
         return message;
     }
 
@@ -63,5 +67,13 @@ public class Message extends Model<Message> {
 
     public void setSenderId(int senderId) {
         this.senderId = senderId;
+    }
+
+    public boolean isOpen() {
+        return isOpen;
+    }
+
+    public void setOpen(boolean open) {
+        isOpen = open;
     }
 }

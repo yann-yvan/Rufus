@@ -23,14 +23,24 @@ public class HomeActivityActivity extends Activity implements View.OnClickListen
                 System.out.println(new User().find(1).toJson());
                 for (int i = 0; i < 10; i++) {
                     Message.getInstance(i).save();
+                    Message message = new Message()
+                            .where("receiverId", User.getInstance().getId())
+                            .where("id", i)
+                            .first();
+                    if (message != null)
+                        System.out.println(message.toJson());
                 }
 
                 Message message = new Message()
                         .where("receiverId", User.getInstance().getId())
                         .where("id", 5)
                         .first();
-                if (message != null)
-                    System.out.println(message.toJson());
+                if (message != null) {
+                    System.out.printf("Before  ==> %s", message.toJson());
+                    message.setOpen(true);
+                    message = message.save();
+                    System.out.printf("After  ==> %s", message.toJson());
+                }
 
                 break;
         }
